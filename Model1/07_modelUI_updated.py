@@ -735,7 +735,7 @@ def load_everything():
     seg_model.eval()
 
     # classifier
-    ckpt = torch.load(cfg.CLS_CKPT, map_location=DEVICE)
+    ckpt = torch.load(cfg.CLS_CKPT, map_location=DEVICE, weights_only=False)
     cfg_ck = ckpt.get("cfg", {})
     state = ckpt["model"] if "model" in ckpt else ckpt
 

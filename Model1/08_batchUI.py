@@ -143,7 +143,7 @@ def load_seg_model(ckpt_path: str, device: str):
     if not os.path.exists(ckpt_path):
         raise FileNotFoundError(f"Seg checkpoint not found: {ckpt_path}")
 
-    ckpt = torch.load(ckpt_path, map_location=device)
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
     cfg_s = ckpt.get("config", {})
     state = ckpt["state_dict"]
 
@@ -774,7 +774,7 @@ def load_classifier_v5(ckpt_path: str, train_out_dir: str, device: str):
     if not os.path.exists(ckpt_path):
         raise FileNotFoundError(ckpt_path)
 
-    ckpt = torch.load(ckpt_path, map_location=device)
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
     cfg_ck = ckpt.get("cfg", {})
 
     use_3class = bool(cfg_ck.get("USE_3CLASS_MERGE", False))

@@ -139,7 +139,7 @@ def load_seg_model(ckpt_path: str, device: str):
     if not os.path.exists(ckpt_path):
         raise FileNotFoundError(f"Seg checkpoint not found at: {ckpt_path}")
 
-    ckpt = torch.load(ckpt_path, map_location=device)
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
     cfg_s = ckpt.get("config", {})
     state = ckpt["state_dict"]
 
@@ -780,7 +780,7 @@ class DualBranchMIL_WithFeatures(nn.Module):
 ORIG_4 = ["Edema", "Scar", "Infection", "Normal"]
 
 def load_classifier_checkpoint(ckpt_path: str, device: str):
-    ckpt = torch.load(ckpt_path, map_location=device)
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
     cfg_ck = ckpt.get("cfg", {})
     feat_keys = ckpt.get("feat_keys", [])
 

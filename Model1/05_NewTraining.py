@@ -1000,7 +1000,7 @@ def save_ckpt(path: str, epoch: int, model, optimizer, scaler, best_acc: float, 
     }, path)
 
 def load_ckpt(path: str, model, optimizer, scaler):
-    ckpt = torch.load(path, map_location=DEVICE)
+    ckpt = torch.load(path, map_location=DEVICE, weights_only=False)
     model.load_state_dict(ckpt["model"], strict=True)
     optimizer.load_state_dict(ckpt["optimizer"])
     scaler.load_state_dict(ckpt["scaler"])

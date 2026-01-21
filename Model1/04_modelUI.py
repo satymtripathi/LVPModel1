@@ -490,7 +490,7 @@ def load_everything():
     seg_model, idx_crop, idx_limbus, img_size = load_model(cfg.SEG_CKPT, DEVICE)
     seg_model.eval()
 
-    ckpt = torch.load(cfg.CLS_CKPT, map_location=DEVICE)
+    ckpt = torch.load(cfg.CLS_CKPT, map_location=DEVICE, weights_only=False)
     cfg_ck = ckpt.get("cfg", {})
     state = ckpt["model"] if "model" in ckpt else ckpt
 
