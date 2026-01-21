@@ -1,4 +1,0 @@
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
-# model_limbus_crop_unetpp_weighted.pth is included.
