@@ -52,14 +52,17 @@ VALID_EXTS = {".jpg", ".jpeg", ".png", ".bmp"}
 
 
 # ============================================================
-# CONFIG
+# CONFIG & PATHS
 # ============================================================
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(SCRIPT_DIR)
+
 @dataclass
 class CFG:
-    # default paths (you can change in sidebar)
-    SEG_CKPT: str = "Limbus_Crop_Segmentation_System/model_limbus_crop_unetpp_weighted.pth"
-    CLS_CKPT: str = "training_results_v5/checkpoints/best.pth"
-    TRAIN_OUT_DIR: str = "training_results_v5"
+    # ✅ Robust absolute paths derived from BASE_DIR
+    SEG_CKPT: str = os.path.join(BASE_DIR, "Limbus_Crop_Segmentation_System", "model_limbus_crop_unetpp_weighted.pth")
+    CLS_CKPT: str = os.path.join(BASE_DIR, "training_results_v5", "checkpoints", "best.pth")
+    TRAIN_OUT_DIR: str = os.path.join(BASE_DIR, "training_results_v5")
 
     DEVICE: str = "cuda" if torch.cuda.is_available() else "cpu"
     USE_AMP: bool = True
