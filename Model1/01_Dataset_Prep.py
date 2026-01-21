@@ -23,7 +23,7 @@ from Limbus_Crop_Segmentation_System.inference_utils import load_model
 # CONFIG
 # =========================
 DATA_ROOT = r"DatasetSatyam"
-CHECKPOINT_PATH = r"Limbus_Crop_Segmentation_System\model_limbus_crop_unetpp_weighted.pth"
+CHECKPOINT_PATH = r"Limbus_Crop_Segmentation_System/model_limbus_crop_unetpp_weighted.pth"
 OUT_CACHE = "DatasetSatyam_Precomputed1"
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

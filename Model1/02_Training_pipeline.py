@@ -27,8 +27,8 @@ cv2.ocl.setUseOpenCL(False)
 # =========================
 @dataclass
 class CFG:
-    CACHE_ROOT: str = r"DatasetSatyam_Precomputed1"
-    OUT_DIR: str = r"training_results_v4"
+    CACHE_ROOT: str = "DatasetSatyam_Precomputed1"
+    OUT_DIR: str = "training_results_v4"
 
     USE_3CLASS_MERGE: bool = False
 

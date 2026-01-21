@@ -57,9 +57,9 @@ VALID_EXTS = {".jpg", ".jpeg", ".png", ".bmp"}
 @dataclass
 class CFG:
     # default paths (you can change in sidebar)
-    SEG_CKPT: str = r"Limbus_Crop_Segmentation_System\model_limbus_crop_unetpp_weighted.pth"
-    CLS_CKPT: str = r"training_results_v5\checkpoints\best.pth"
-    TRAIN_OUT_DIR: str = r"training_results_v5"
+    SEG_CKPT: str = "Limbus_Crop_Segmentation_System/model_limbus_crop_unetpp_weighted.pth"
+    CLS_CKPT: str = "training_results_v5/checkpoints/best.pth"
+    TRAIN_OUT_DIR: str = "training_results_v5"
 
     DEVICE: str = "cuda" if torch.cuda.is_available() else "cpu"
     USE_AMP: bool = True
