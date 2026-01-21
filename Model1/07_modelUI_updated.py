@@ -48,16 +48,16 @@ cv2.ocl.setUseOpenCL(False)
 @dataclass
 class CFG:
     # ✅ set these to your real paths
-    SEG_CKPT: str = r"Limbus_Crop_Segmentation_System\model_limbus_crop_unetpp_weighted.pth"
+    SEG_CKPT: str = "Limbus_Crop_Segmentation_System/model_limbus_crop_unetpp_weighted.pth"
 
     # TRAIN OUT DIR from your training script
-    TRAIN_OUT_DIR: str = r"training_results_v5"
-    CLS_CKPT: str = r"training_results_v5\checkpoints\best.pth"
+    TRAIN_OUT_DIR: str = "training_results_v5"
+    CLS_CKPT: str = "training_results_v5/checkpoints/best.pth"
 
     # auto from TRAIN_OUT_DIR
-    FEATURE_KEYS_JSON: str = r"training_results_v5\feature_keys.json"
-    FEAT_MU_NPY: str = r"training_results_v5\feat_mu.npy"
-    FEAT_SIGMA_NPY: str = r"training_results_v5\feat_sigma.npy"
+    FEATURE_KEYS_JSON: str = "training_results_v5/feature_keys.json"
+    FEAT_MU_NPY: str = "training_results_v5/feat_mu.npy"
+    FEAT_SIGMA_NPY: str = "training_results_v5/feat_sigma.npy"
 
     CLASSES_4: Tuple[str, ...] = ("Edema", "Scar", "Infection", "Normal")
     CLASS_COLORS = {
