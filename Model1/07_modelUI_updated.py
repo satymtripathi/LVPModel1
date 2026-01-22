@@ -780,7 +780,7 @@ except Exception as e:
     st.stop()
 
 st.title("🛡️ KeratitisAI Diagnostic Dashboard")
-st.markdown("**Deep Fusion of Global ROI and Local Patch Evidence (Doctor-like Soft Attention)**")
+st.markdown("**Deep Fusion of Global ROI and Local Patch Evidence**")
 
 st.sidebar.title("🩺 Clinical Control")
 uploaded_file = st.sidebar.file_uploader("Upload Slit Lamp Photography", type=["jpg", "jpeg", "png"])
