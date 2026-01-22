@@ -953,7 +953,7 @@ with col_res:
     tbl_html += "</table>"
     st.write(tbl_html, unsafe_allow_html=True)
 
-    st.metric("Predicted Confidence", f"{conf*100:.1f}%")
+    #st.metric("Predicted Confidence", f"{conf*100:.1f}%")
     st.metric("Tiles (fixed)", cfg.MAX_TILES)
     st.metric("Top-K (display)", int(topk_val))
 
