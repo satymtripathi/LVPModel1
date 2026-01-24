@@ -1,6 +1,6 @@
 # Theory & Pipeline: 05_NewTraining.py
 
-This document provides a detailed technical breakdown of the advanced Dual-Branch Multiple Instance Learning (MIL) pipeline used for keratitis classification.
+This document provides a detailed technical breakdown of the advanced Triple-Branch Multiple Instance Learning (MIL) pipeline used for keratitis classification.
 
 ## 1. System Architecture
 The system uses a **Triple-Input Multi-Branch** architecture to capture information at different scales and modalities:
@@ -14,7 +14,7 @@ The system uses a **Triple-Input Multi-Branch** architecture to capture informat
 ---
 
 ## 2. Tile Processing & MIL Flow
-This is the core of the "No Code Segmentation" logic. Instead of needing pixel-level masks, the model learns to "attend" to relevant areas.
+This is the core of the "No Segmentation" logic. Instead of needing pixel-level masks, the model learns to "attend" to relevant areas.
 
 ### A. Tile Extraction & Sampling
 - Each image is treated as a **"Bag"** of instances (tiles).
@@ -28,7 +28,7 @@ This is the core of the "No Code Segmentation" logic. Instead of needing pixel-l
 ### C. Foreground/Background Isolation (Masking)
 A critical feature of this pipeline is **Sector-Specific Masking**:
 - **Tile Masking**: Within each 224x224 tile, only the pixels belonging to the specific "Polar Sector" are preserved. All other pixels (background) are zeroed to black.
-- **Why?**: This forces the AI to ignore structural noise (eyelids, eyelashes, scleral reflections) and focus strictly on the corneal tissue in the foreground.
+- **Why?**: This forces the model to ignore structural noise (eyelids, eyelashes, scleral reflections) and focus strictly on the corneal tissue in the foreground.
 - **Valid Masking**: The model uses a `valid_mask` to ensure that empty/padded tiles (where no tissue was detected) are completely ignored during the attention calculation.
 
 #### How it works (Technical Mechanism):
