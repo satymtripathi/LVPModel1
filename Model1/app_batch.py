@@ -69,6 +69,8 @@ class CFG:
 
     SEG_THRESH: float = 0.50
 
+    # ROI and sizing (CRITICAL for matching training)
+    CANONICAL_SIZE: int = 512
     GLOBAL_SIZE: int = 384
     TILE_SIZE: int = 224
     MAX_TILES: int = 24
@@ -84,6 +86,10 @@ class CFG:
     # defaults (overridden by ckpt cfg + UI sliders)
     TOPK_POOL_DEFAULT: int = 4
     QUALITY_BETA_DEFAULT: float = 0.7
+
+    # ROI cropping improvements (CRITICAL!)
+    CROP_RECT_PAD: int = 20
+    CROP_MIN_AREA_FRAC: float = 0.002
 
     SAVE_DEBUG_DEFAULT: bool = True
     DEBUG_TOP_TILES: int = 6
@@ -137,6 +143,74 @@ def decode_uploaded_to_bgr(uploaded) -> Optional[np.ndarray]:
     file_bytes = np.asarray(bytearray(uploaded.read()), dtype=np.uint8)
     bgr = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
     return bgr
+
+
+# ============================================================
+# ROI HELPERS (CRITICAL FOR MATCHING TRAINING!)
+# ============================================================
+def postprocess_binary(mask01: np.ndarray, k_close: int = 21, k_open: int = 9) -> np.ndarray:
+    """Morphologically clean up binary mask"""
+    m = (mask01.astype(np.uint8) * 255)
+    k1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k_close, k_close))
+    k2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k_open, k_open))
+    m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, k1, iterations=2)
+    m = cv2.morphologyEx(m, cv2.MORPH_OPEN, k2, iterations=1)
+    return (m > 127).astype(np.uint8)
+
+def largest_contour(mask01: np.ndarray):
+    """Find largest contour in binary mask"""
+    m = (mask01.astype(np.uint8) * 255)
+    contours, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+    return max(contours, key=cv2.contourArea)
+
+def rect_mask_from_crop(crop_mask01: np.ndarray, pad: int = 20, min_area_frac: float = 0.002) -> np.ndarray:
+    """Convert crop mask to clean bounding rectangle"""
+    H, W = crop_mask01.shape[:2]
+    c = largest_contour(crop_mask01)
+    if c is None:
+        return crop_mask01.astype(np.uint8)
+    
+    area = float(cv2.contourArea(c))
+    if area < (min_area_frac * H * W):
+        return crop_mask01.astype(np.uint8)
+    
+    x, y, w, h = cv2.boundingRect(c)
+    x1 = max(0, x - pad)
+    y1 = max(0, y - pad)
+    x2 = min(W - 1, x + w + pad)
+    y2 = min(H - 1, y + h + pad)
+    
+    rect = np.zeros((H, W), dtype=np.uint8)
+    rect[y1:y2+1, x1:x2+1] = 1
+    return rect
+
+def crop_roi_by_largest_rect(rgb: np.ndarray, crop_mask01: np.ndarray, pad: int = 0, min_area_frac: float = 0.002):
+    """
+    CRITICAL: Extract actual ROI bbox to match training distribution!
+    This removes black padding that causes feature distribution shift.
+    """
+    H, W = crop_mask01.shape[:2]
+    c = largest_contour(crop_mask01)
+    if c is None:
+        return None, None
+    
+    area = float(cv2.contourArea(c))
+    if area < (min_area_frac * H * W):
+        return None, None
+    
+    x, y, w, h = cv2.boundingRect(c)
+    x1 = max(0, x - pad)
+    y1 = max(0, y - pad)
+    x2 = min(W - 1, x + w + pad)
+    y2 = min(H - 1, y + h + pad)
+    
+    if x2 <= x1 or y2 <= y1:
+        return None, None
+    
+    roi = rgb[y1:y2+1, x1:x2+1].copy()
+    return roi, (x1, y1, x2, y2)
 
 
 # ============================================================
@@ -848,13 +922,30 @@ def infer_one(
     crop_mask = masks[idx_crop].astype(np.uint8)
     limbus_mask = masks[idx_limbus].astype(np.uint8)
 
-    if crop_mask.sum() < 50 and limbus_mask.sum() > 50:
-        crop_mask = limbus_mask.copy()
+    # ---- Work in canonical 512 space (CRITICAL!) ----
+    bgr_512 = cv2.resize(bgr, (cfg.CANONICAL_SIZE, cfg.CANONICAL_SIZE))
+    rgb_512 = bgr_to_rgb(bgr_512)
+    crop_512 = cv2.resize(crop_mask, (cfg.CANONICAL_SIZE, cfg.CANONICAL_SIZE), interpolation=cv2.INTER_NEAREST).astype(np.uint8)
+    limbus_512 = cv2.resize(limbus_mask, (cfg.CANONICAL_SIZE, cfg.CANONICAL_SIZE), interpolation=cv2.INTER_NEAREST).astype(np.uint8)
 
-    rgb_full = bgr_to_rgb(bgr)
+    # ---- Clean up crop mask ----
+    crop_512 = postprocess_binary(crop_512, k_close=21, k_open=9)
+    crop_rect_512 = rect_mask_from_crop(crop_512, pad=cfg.CROP_RECT_PAD, min_area_frac=cfg.CROP_MIN_AREA_FRAC)
 
-    # ---- global + REAL tiles + qnorm/valid + coords ----
-    global_rgb, tiles_real, qnorm, valid_mask, coords_real = polar_tiles_v5(rgb_full, crop_mask, limbus_mask)
+    # ---- Fallback if crop missing but limbus exists ----
+    if crop_rect_512.sum() < 50 and limbus_512.sum() > 50:
+        crop_rect_512 = limbus_512.copy()
+
+    # ---- GLOBAL BRANCH: Extract REAL ROI bbox (CRITICAL FOR MATCHING TRAINING!) ----
+    roi_rgb, roi_box = crop_roi_by_largest_rect(rgb_512, crop_rect_512, pad=0, min_area_frac=cfg.CROP_MIN_AREA_FRAC)
+    if roi_rgb is None:
+        global_rgb = apply_mask_rgb(rgb_512, crop_rect_512)
+    else:
+        global_rgb = roi_rgb  # Use cropped ROI without black padding!
+
+    # ---- TILE BRANCH: Use full masked canvas for consistent coordinates ----
+    global_masked_512 = apply_mask_rgb(rgb_512, crop_rect_512)
+    _, tiles_real, qnorm, valid_mask, coords_real = polar_tiles_v5(global_masked_512, crop_rect_512, limbus_512)
 
     # ---- pad tiles for MODEL (keep REAL tiles separately) ----
     black_tile = np.zeros((cfg.TILE_SIZE, cfg.TILE_SIZE, 3), dtype=np.uint8)
@@ -958,8 +1049,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🛡️ KeratitisAI V5 Dashboard (Single + Batch)")
-st.markdown("**Raw inference only** (no cache). Segmentation → Global ROI → Polar tiles → V5 scoring → Features (standardized) → MIL classifier.")
+st.title("🛡️ KeratitisAI Diagnostic Dashboard")
+st.markdown("**Deep Fusion of Global ROI and Local Patch Evidence**")
 
 # Sidebar controls
 st.sidebar.title("🩺 Controls")
