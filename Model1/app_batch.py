@@ -194,7 +194,7 @@ def predict_masks_fast(model, image_bgr: np.ndarray, img_size_hw: Tuple[int, int
 
 
 # ============================================================
-# V5 TILE SCORING
+# CLINICAL TILE SCORING (EXACT from 01_train.py)
 # ============================================================
 def _gray_entropy_u8(gray_u8: np.ndarray) -> float:
     hist = cv2.calcHist([gray_u8], [0], None, [256], [0, 256]).ravel().astype(np.float64)
@@ -269,6 +269,12 @@ def _opacity_score(rgb: np.ndarray) -> float:
     return float(min(1.0, frac / 0.35))
 
 def tile_quality_score_v5(tile_rgb: np.ndarray) -> float:
+    """
+    Clinical-ish score (EXACT COPY from 01_train.py):
+    - keep basic quality (valid ratio, blur, contrast, entropy)
+    - penalize: glare and border-edge dominance
+    - mildly reward: opacity-like regions
+    """
     if tile_rgb is None or tile_rgb.size == 0:
         return 0.0
 
@@ -281,9 +287,11 @@ def tile_quality_score_v5(tile_rgb: np.ndarray) -> float:
     g_valid = gray[valid]
     contrast = float(g_valid.std()) if g_valid.size > 0 else 0.0
 
+    # blur/sharpness
     lap = cv2.Laplacian(gray, cv2.CV_32F)
     lapv = float(lap[valid].var()) if valid.any() else 0.0
 
+    # structure/texture (but not too edge-driven)
     loc_ent = _local_entropy_map(gray, k=15)
     lbp_ent, uniform_ratio = _lbp_riu2_entropy(gray)
     hf_ratio = _fft_high_freq_ratio(gray)
@@ -292,11 +300,14 @@ def tile_quality_score_v5(tile_rgb: np.ndarray) -> float:
     edge_density = float(edges[valid].mean() / 255.0) if valid.any() else 0.0
     border_ratio = _border_edge_ratio(edges, border=max(8, gray.shape[0] // 14))
 
+    # clinical cues
     glare_pen = _glare_penalty(tile_rgb)
     opacity = _opacity_score(tile_rgb)
 
+    # uniform penalty (very flat tiles)
     uniform_pen = 1.0 - 0.5 * uniform_ratio
 
+    # scoring: reduce edge dominance, add opacity, penalize border edges + glare
     score = (
         0.22 * math.log1p(lapv) +
         0.10 * math.log1p(contrast) +
@@ -307,7 +318,10 @@ def tile_quality_score_v5(tile_rgb: np.ndarray) -> float:
         0.13 * opacity
     )
     score = score * (0.5 + 0.5 * valid_ratio) * uniform_pen
+
+    # penalties
     score = score * (1.0 - 0.8 * min(1.0, border_ratio)) * (1.0 - 0.9 * min(1.0, glare_pen))
+
     return float(max(0.0, score))
 
 
