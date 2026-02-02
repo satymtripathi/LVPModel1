@@ -1,0 +1,66 @@
+{
+  "CACHE_ROOT": "DatasetSatyam_Precomputed1",
+  "OUT_DIR": "train_precomputed_run_SAFE_V5_doctorlike",
+  "USE_3CLASS_MERGE": false,
+  "GLOBAL_SIZE": 384,
+  "TILE_SIZE": 224,
+  "MAX_TILES": 24,
+  "EPOCHS": 20,
+  "BATCH_SIZE": 2,
+  "GRAD_ACCUM": 4,
+  "BASE_LR": 2e-05,
+  "WEIGHT_DECAY": 0.0001,
+  "SEED": 42,
+  "TOPK_POOL": 4,
+  "QUALITY_BETA": 0.7,
+  "TILE_DROPOUT": 0.1,
+  "FOCAL_GAMMA": 2.0,
+  "LABEL_SMOOTH": 0.05,
+  "LAMBDA_ATT_ENT_START": 0.05,
+  "LAMBDA_ATT_ENT_AFTER": 0.02,
+  "ENT_WARM_EPOCHS": 5,
+  "W4": [
+    1.0,
+    1.0,
+    3.0,
+    1.5
+  ],
+  "W3": [
+    1.0,
+    1.4,
+    2.2
+  ],
+  "NUM_WORKERS": 0,
+  "PIN_MEMORY": true,
+  "PERSISTENT_WORKERS": false,
+  "CUDNN_BENCHMARK": true,
+  "LIMIT_TILES_READ": 24,
+  "FEATURE_FROM": "global+top_tiles",
+  "TOP_TILES_FOR_FEATURES": 6,
+  "SAVE_FEATURES_JSON": true,
+  "RESUME": true,
+  "AUG_DEVICE": true,
+  "AUG_JPEG_PROB": 0.25,
+  "AUG_GAMMA_RANGE": [
+    0.85,
+    1.15
+  ],
+  "AUG_BRIGHTNESS_RANGE": [
+    0.9,
+    1.1
+  ],
+  "AUG_CONTRAST_RANGE": [
+    0.9,
+    1.1
+  ],
+  "AUG_HSV_S_RANGE": [
+    0.9,
+    1.1
+  ],
+  "AUG_HSV_V_RANGE": [
+    0.9,
+    1.1
+  ],
+  "AUG_BLUR_PROB": 0.1,
+  "AUG_NOISE_PROB": 0.1
+}
