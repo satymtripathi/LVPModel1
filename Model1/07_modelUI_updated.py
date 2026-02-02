@@ -54,13 +54,13 @@ class CFG:
     SEG_CKPT: str = os.path.join(BASE_DIR, "Limbus_Crop_Segmentation_System", "model_limbus_crop_unetpp_weighted.pth")
 
     # TRAIN OUT DIR from your training script
-    TRAIN_OUT_DIR: str = os.path.join(BASE_DIR, "training_results_v5")
-    CLS_CKPT: str = os.path.join(BASE_DIR, "training_results_v5", "checkpoints", "best.pth")
+    TRAIN_OUT_DIR: str = os.path.join(BASE_DIR, "train_precomputed_run_SAFE_V6_doctorlike")
+    CLS_CKPT: str = os.path.join(BASE_DIR, "train_precomputed_run_SAFE_V6_doctorlike", "checkpoints", "best.pth")
 
     # auto from TRAIN_OUT_DIR
-    FEATURE_KEYS_JSON: str = os.path.join(BASE_DIR, "training_results_v5", "feature_keys.json")
-    FEAT_MU_NPY: str = os.path.join(BASE_DIR, "training_results_v5", "feat_mu.npy")
-    FEAT_SIGMA_NPY: str = os.path.join(BASE_DIR, "training_results_v5", "feat_sigma.npy")
+    FEATURE_KEYS_JSON: str = os.path.join(BASE_DIR, "train_precomputed_run_SAFE_V6_doctorlike", "feature_keys.json")
+    FEAT_MU_NPY: str = os.path.join(BASE_DIR, "train_precomputed_run_SAFE_V6_doctorlike", "feat_mu.npy")
+    FEAT_SIGMA_NPY: str = os.path.join(BASE_DIR, "train_precomputed_run_SAFE_V6_doctorlike", "feat_sigma.npy")
 
     CLASSES_4: Tuple[str, ...] = ("Edema", "Scar", "Infection", "Normal")
     CLASS_COLORS = {
